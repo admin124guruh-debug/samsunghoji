@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="uz" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samsung O'zbekiston | Mobil qurilmalar, TV, Maishiy texnika</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        samsung: {
+                            blue: '#1428A0',      // Rasmiy Samsung chuqur ko'k
+                            bright: '#2189FF',    // Yorqin interaktiv ko'k
+                            bg: '#F7F7F7',        // Samsung och kulrang fon
+                            card: '#F4F4F4',      // Kartochka foni
+                            dark: '#000000',      // Chuqur qora
+                            gray: '#555555'       // Ikkinchi darajali matn
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Maxsus silliq animatsiyalar va scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Telefon 3D korpus effekti */
+        .phone-chassis {
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), inset 0 0 0 2px rgba(255,255,255,0.25);
+        }
+    </style>
+</head>
+<body class="bg-white text-black font-sans antialiased selection:bg-samsung-bright selection:text-white overflow-x-hidden">
+
+    <!-- Maxsus Toast Bildirishnoma Tizimi (alert() o'rniga) -->
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-max max-w-[92vw]"></div>
+
+    <!-- 7.1) QIDIRUV MODALI -->
+    <div id="search-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden opacity-0 transition-opacity duration-300 flex items-start justify-center pt-16 sm:pt-24 p-4">
+        <div id="search-modal-content" class="w-full max-w-3xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl transform -translate-y-4 transition-transform duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <span class="font-display font-extrabold text-lg tracking-wider">SAMSUNG QIDIRUV</span>
+                <button onclick="toggleSearchModal(false)" class="p-2 rounded-full hover:bg-samsung-bg transition-colors" aria-label="Yopish">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <div class="relative">
+                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" 
+                    placeholder="Galaxy S26 Ultra, Neo QLED 8K, Bespoke AI..." 
+                    class="w-full bg-samsung-bg rounded-full py-4 pl-12 pr-6 text-base sm:text-lg font-medium outline-none focus:ring-2 focus:ring-black transition-all">
+                <svg class="w-5 h-5 text-gray-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+
+            <!-- Mashhur so'rovlar -->
+            <div class="mt-5">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Mashhur so'rovlar</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setSearchQuery('Galaxy S26 Ultra')" class="px-4 py-2 rounded-full bg-samsung-bg hover:bg-black hover:text-white text-sm font-medium transition-colors">Galaxy S26 Ultra</button>
+                    <button onclick="setSearchQuery('Galaxy Z Fold')" class="px-4 py-2 rounded-full bg-samsung-bg hover:bg-black hover:text-white text-sm font-medium transition-colors">Galaxy Z Fold</button>
+                    <button onclick="setSearchQuery('Neo QLED 8K')" class="px-4 py-2 rounded-full bg-samsung-bg hover:bg-black hover:text-white text-sm font-medium transition-colors">Neo QLED 8K</button>
+                    <button onclick="setSearchQuery('Bespoke AI')" class="px-4 py-2 rounded-full bg-samsung-bg hover:bg-black hover:text-white text-sm font-medium transition-colors">Bespoke AI</button>
+                    <button onclick="setSearchQuery('Galaxy Watch')" class="px-4 py-2 rounded-full bg-samsung-bg hover:bg-black hover:text-white text-sm font-medium transition-colors">Galaxy Watch</button>
+                </div>
+            </div>
+
+            <!-- Jonli qidiruv natijalari -->
+            <div id="live-search-results" class="mt-6 max-h-72 overflow-y-auto divide-y divide-gray-100"></div>
+        </div>
+    </div>
+
+    <!-- 7.2) SAVATCHA YON PANELI (CART DRAWER) -->
+    <div id="cart-overlay" onclick="toggleCartDrawer(false)" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden opacity-0 transition-opacity duration-300"></div>
+    <aside id="cart-drawer" class="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
+        <!-- Savatcha sarlavhasi -->
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <h2 class="font-display font-bold text-xl">Savatcha</h2>
+                <span id="drawer-cart-count" class="px-2.5 py-0.5 rounded-full bg-samsung-blue text-white text-xs font-bold">0</span>
+            </div>
+            <button onclick="toggleCartDrawer(false)" class="p-2 rounded-full hover:bg-samsung-bg transition-colors" aria-label="Savatchani yopish">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Savatchadagi mahsulotlar ro'yxati -->
+        <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <!-- Dinamik to'ldiriladi -->
+        </div>
+
+        <!-- Savatcha pastki qismi (Jami summa va Buyurtma tugmasi) -->
+        <div class="p-6 bg-samsung-bg border-t border-gray-200 space-y-4">
+            <div class="flex items-center justify-between text-sm text-gray-600">
+                <span>Yetkazib berish (O'zbekiston bo'ylab):</span>
+                <span class="font-semibold text-emerald-700">Bepul</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="font-semibold text-base">Umumiy summa:</span>
+                <span id="cart-total-price" class="font-display font-extrabold text-xl">0 so'm</span>
+            </div>
+            <button onclick="checkoutOrder()" class="w-full py-4 rounded-full bg-samsung-bright hover:bg-samsung-blue text-white font-semibold text-sm transition-colors shadow-lg shadow-samsung-bright/25">
+                Buyurtma berish
+            </button>
+        </div>
+    </aside>
+
+    <!-- 1) NAVIGATSIYA PANELI (HEADER) -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+            <div class="flex items-center justify-between h-16 lg:h-20">
+                <!-- Samsung Rasmiy Logotipi -->
+                <a href="#" class="flex items-center focus:outline-none shrink-0" aria-label="Samsung Bosh sahifa">
+                    <span class="font-display font-extrabold text-xl sm:text-2xl tracking-[0.14em] text-black">SAMSUNG</span>
+                </a>
+
+                <!-- Asosiy Menyular (Desktop) -->
+                <nav class="hidden xl:flex items-center space-x-1">
+                    <a href="#highlights" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">Do'kon</a>
+                    <a href="#mobile-showcase" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">Mobil</a>
+                    <a href="#highlights" onclick="selectHighlightTab('tv')" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">TV va AV</a>
+                    <a href="#highlights" onclick="selectHighlightTab('home')" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">Maishiy texnika</a>
+                    <a href="#highlights" onclick="selectHighlightTab('new')" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">Noutbuk va Monitorlar</a>
+                    <a href="#mobile-showcase" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">Aksessuarlar</a>
+                    <a href="#smartthings" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">SmartThings</a>
+                    <a href="#footer-support" class="px-3.5 py-2 rounded-full text-sm font-semibold hover:bg-black hover:text-white transition-colors">Qo'llab-quvvatlash</a>
+                </nav>
+
+                <!-- O'ng tomondagi ikonka tugmalari -->
+                <div class="flex items-center space-x-1 sm:space-x-2">
+                    <!-- Qidiruv tugmasi -->
+                    <button onclick="toggleSearchModal(true)" class="p-2.5 rounded-full hover:bg-samsung-bg transition-colors flex items-center gap-2" aria-label="Qidiruv">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </button>
+
+                    <!-- Savatcha tugmasi -->
+                    <button onclick="toggleCartDrawer(true)" class="relative p-2.5 rounded-full hover:bg-samsung-bg transition-colors" aria-label="Savatcha">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span id="header-cart-badge" class="absolute top-1 right-1 w-4 h-4 rounded-full bg-samsung-bright text-white text-[10px] font-bold flex items-center justify-center">0</span>
+                    </button>
+
+                    <!-- Foydalanuvchi profili -->
+                    <button onclick="showToast('Samsung Account: Shaxsiy kabinetga kirish oynasi')" class="p-2.5 rounded-full hover:bg-samsung-bg transition-colors" aria-label="Profil">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </button>
+
+                    <!-- Mobil menyu tugmasi -->
+                    <button onclick="toggleMobileMenu()" class="xl:hidden p-2.5 rounded-full hover:bg-samsung-bg transition-colors" aria-label="Menyu">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobil menyu -->
+        <div id="mobile-menu" class="hidden xl:hidden bg-white border-t border-gray-100 px-6 py-5 space-y-2 shadow-lg">
+            <a href="#highlights" onclick="toggleMobileMenu()" class="block py-2.5 font-semibold text-base border-b border-gray-50">Do'kon</a>
+            <a href="#mobile-showcase" onclick="toggleMobileMenu()" class="block py-2.5 font-semibold text-base border-b border-gray-50">Mobil</a>
+            <a href="#highlights" onclick="selectHighlightTab('tv'); toggleMobileMenu()" class="block py-2.5 font-semibold text-base border-b border-gray-50">TV va AV</a>
+            <a href="#highlights" onclick="selectHighlightTab('home'); toggleMobileMenu()" class="block py-2.5 font-semibold text-base border-b border-gray-50">Maishiy texnika</a>
+            <a href="#smartthings" onclick="toggleMobileMenu()" class="block py-2.5 font-semibold text-base border-b border-gray-50">SmartThings</a>
+            <a href="#explore" onclick="toggleMobileMenu()" class="block py-2.5 font-semibold text-base">Explore #DoWhatYouCant</a>
+        </div>
+    </header>
+
+    <!-- 2) HERO SLIDER (ASOSIY BANNER KARUSELI) -->
+    <section class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-4 pb-12">
+        <div class="relative rounded-3xl overflow-hidden bg-samsung-bg min-h-[540px] lg:min-h-[620px] flex items-center">
+            <!-- Slaydlar konteyneri -->
+            <div id="hero-slides" class="w-full h-full">
+                <!-- Slayd 1: Galaxy S26 Ultra -->
+                <div class="hero-slide grid lg:grid-cols-12 gap-8 items-center p-8 sm:p-12 lg:p-16 bg-gradient-to-br from-[#0A0E1A] via-[#131C36] to-[#1428A0] text-white min-h-[540px] lg:min-h-[620px]">
+                    <div class="lg:col-span-6 space-y-6 z-10">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-bold tracking-wider uppercase">
+                            <span class="w-2 h-2 rounded-full bg-samsung-bright"></span> Galaxy AI ✨
+                        </span>
+                        <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+                            Galaxy S26 Ultra — Galaxy AI bilan yangi davr
+                        </h1>
+                        <p class="text-base sm:text-lg text-gray-200 max-w-xl leading-relaxed">
+                            200 MP ProVisual kamera tizimi, o'rnatilgan S Pen va sun'iy intellektga asoslangan real vaqtdagi tarjimon imkoniyatlari bilan tanishing.
+                        </p>
+                        <div class="flex flex-wrap items-center gap-4 pt-2">
+                            <button onclick="addToCart('Galaxy S26 Ultra (512 GB)', 16990000, 'Titanium Qora')" class="px-7 py-3.5 rounded-full bg-white text-black hover:bg-gray-200 font-semibold text-sm transition-colors">
+                                Sotib olish — 16 990 000 so'm
+                            </button>
+                            <a href="#mobile-showcase" class="px-6 py-3.5 rounded-full border border-white/40 hover:bg-white/10 text-white font-semibold text-sm transition-colors">
+                                Batafsil ma'lumot
+                            </a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-6 flex justify-center items-center">
+                        <!-- Yuqori sifatli SVG Galaxy S26 Ultra illyustratsiyasi -->
+                        <div class="relative w-64 sm:w-72 h-[400px] sm:h-[440px] rounded-[36px] bg-gradient-to-b from-[#2B313E] to-[#14171F] p-2.5 shadow-2xl border border-white/20 flex flex-col justify-between">
+                            <div class="w-full h-full rounded-[28px] bg-gradient-to-tr from-[#0B132B] via-[#1C2541] to-[#3A506B] p-5 flex flex-col justify-between relative overflow-hidden">
+                                <div class="w-3 h-3 rounded-full bg-black mx-auto"></div>
+                                <div class="my-auto text-center space-y-2">
+                                    <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-samsung-bright to-purple-500 blur-md opacity-80"></div>
+                                    <p class="font-display font-bold text-xl tracking-tight relative z-10">Galaxy AI</p>
+                                    <p class="text-xs text-blue-200 relative z-10">Titanium Korpus • S Pen</p>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] text-white/60">
+                                    <span>200MP</span>
+                                    <span>5000 mA/soat</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slayd 2: Neo QLED 8K -->
+                <div class="hero-slide hidden grid lg:grid-cols-12 gap-8 items-center p-8 sm:p-12 lg:p-16 bg-gradient-to-br from-[#F4F6FA] via-[#E6ECF5] to-[#D5E0F2] text-black min-h-[540px] lg:min-h-[620px]">
+                    <div class="lg:col-span-6 space-y-6 z-10">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black text-white text-xs font-bold tracking-wider uppercase">
+                            NQ8 AI Gen3 Protsessor
+                        </span>
+                        <h2 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+                            Neo QLED 8K — Sun'iy intellekt bilan mukammal tasvir
+                        </h2>
+                        <p class="text-base sm:text-lg text-gray-700 max-w-xl leading-relaxed">
+                            512 ta neyron tarmoq yordamida har bir kadrni 8K aniqlik darajasigacha boyitadi. Infinity Air dizayni bilan devor bilan birlashib ketadi.
+                        </p>
+                        <div class="flex flex-wrap items-center gap-4 pt-2">
+                            <button onclick="addToCart('Samsung Neo QLED 8K 75\" QN900D', 42500000, 'Titan Qora')" class="px-7 py-3.5 rounded-full bg-black text-white hover:bg-gray-800 font-semibold text-sm transition-colors">
+                                Sotib olish — 42 500 000 so'm
+                            </button>
+                            <a href="#highlights" onclick="selectHighlightTab('tv')" class="px-6 py-3.5 rounded-full border border-black/30 hover:bg-black/5 text-black font-semibold text-sm transition-colors">
+                                Batafsil ma'lumot
+                            </a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-6 flex justify-center items-center">
+                        <!-- Ultra-yupqa 8K TV SVG vizualizatsiyasi -->
+                        <div class="w-full max-w-lg aspect-video rounded-2xl bg-black p-2 shadow-2xl relative">
+                            <div class="w-full h-full rounded-xl bg-gradient-to-r from-indigo-900 via-blue-600 to-cyan-400 flex items-center justify-center relative overflow-hidden">
+                                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.35),transparent_70%)]"></div>
+                                <div class="text-center text-white z-10">
+                                    <span class="font-display font-extrabold text-3xl sm:text-4xl tracking-widest">8K AI</span>
+                                    <p class="text-xs uppercase tracking-widest mt-1 text-blue-100">Quantum Matrix Pro</p>
+                                </div>
+                            </div>
+                            <div class="w-28 h-2 bg-gray-800 mx-auto mt-2 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slayd 3: Bespoke AI Maishiy Texnika -->
+                <div class="hero-slide hidden grid lg:grid-cols-12 gap-8 items-center p-8 sm:p-12 lg:p-16 bg-gradient-to-br from-[#1B262C] via-[#0F4C75] to-[#3282B8] text-white min-h-[540px] lg:min-h-[620px]">
+                    <div class="lg:col-span-6 space-y-6 z-10">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 text-white text-xs font-bold tracking-wider uppercase">
+                            Bespoke AI Home
+                        </span>
+                        <h2 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+                            Bespoke AI Kir yuvish va sovutish texnologiyalari
+                        </h2>
+                        <p class="text-base sm:text-lg text-blue-100 max-w-xl leading-relaxed">
+                            AI Ecobubble™ va SmartThings Energy rejimlari bilan elektr energiyasini 70% gacha tejang hamda kiyimlaringizga professional g'amxo'rlik qiling.
+                        </p>
+                        <div class="flex flex-wrap items-center gap-4 pt-2">
+                            <button onclick="addToCart('Bespoke AI Kir yuvish mashinasi 11kg', 9450000, 'To\'q kulrang')" class="px-7 py-3.5 rounded-full bg-white text-black hover:bg-gray-100 font-semibold text-sm transition-colors">
+                                Sotib olish — 9 450 000 so'm
+                            </button>
+                            <a href="#highlights" onclick="selectHighlightTab('home')" class="px-6 py-3.5 rounded-full border border-white/40 hover:bg-white/10 text-white font-semibold text-sm transition-colors">
+                                Batafsil ma'lumot
+                            </a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-6 flex justify-center items-center">
+                        <!-- Bespoke AI Kir yuvish mashinasi minimalistik SVG korpusi -->
+                        <div class="w-64 sm:w-72 h-80 sm:h-96 rounded-3xl bg-gradient-to-b from-slate-200 to-slate-300 p-6 shadow-2xl flex flex-col justify-between text-black">
+                            <div class="flex items-center justify-between border-b border-slate-400/40 pb-3">
+                                <span class="font-display font-bold text-xs tracking-wider">BESPOKE AI</span>
+                                <span class="px-2 py-0.5 rounded-full bg-black text-white text-[10px]">AI Wash</span>
+                            </div>
+                            <div class="w-40 h-40 mx-auto rounded-full bg-gradient-to-tr from-slate-900 to-slate-700 border-8 border-slate-400 shadow-inner flex items-center justify-center">
+                                <div class="w-24 h-24 rounded-full border border-sky-400/40 flex items-center justify-center">
+                                    <span class="text-sky-300 text-xs font-semibold">AI Control</span>
+                                </div>
+                            </div>
+                            <div class="text-center text-[11px] text-slate-600 font-medium">A+++ Energiya Samaradorligi</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slayd almashtirish strelkalari -->
+            <button onclick="changeHeroSlide(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/80 hover:bg-white text-black shadow-lg flex items-center justify-center transition-all z-20" aria-label="Oldingi slayd">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <button onclick="changeHeroSlide(1)" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/80 hover:bg-white text-black shadow-lg flex items-center justify-center transition-all z-20" aria-label="Keyingi slayd">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+
+            <!-- Pastki Slayd Indikatorlari -->
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full">
+                <button onclick="goToHeroSlide(0)" class="hero-dot h-2 w-8 rounded-full bg-white transition-all"></button>
+                <button onclick="goToHeroSlide(1)" class="hero-dot h-2 w-2.5 rounded-full bg-white/50 hover:bg-white transition-all"></button>
+                <button onclick="goToHeroSlide(2)" class="hero-dot h-2 w-2.5 rounded-full bg-white/50 hover:bg-white transition-all"></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3) "HAFTA TAKLIFLARI" (BENTO GRID + INTERAKTIV TABLAR) -->
+    <section id="highlights" class="py-16 lg:py-24 bg-white">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">Hafta takliflari</h2>
+                <p class="text-samsung-gray mt-3 text-base">Eng so'nggi innovatsion qurilmalar va maxsus takliflarni kashf eting</p>
+            </div>
+
+            <!-- Interaktiv Tablar -->
+            <div class="flex items-center justify-start sm:justify-center gap-2 sm:gap-6 overflow-x-auto no-scrollbar pb-4 mb-8 border-b border-gray-100">
+                <button onclick="selectHighlightTab('new')" id="tab-btn-new" class="highlight-tab-btn px-4 py-2.5 text-sm sm:text-base font-bold border-b-2 border-black text-black whitespace-nowrap transition-all">
+                    Yangi mahsulotlar
+                </button>
+                <button onclick="selectHighlightTab('mobile')" id="tab-btn-mobile" class="highlight-tab-btn px-4 py-2.5 text-sm sm:text-base font-semibold border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-all">
+                    Mobil qurilmalar
+                </button>
+                <button onclick="selectHighlightTab('tv')" id="tab-btn-tv" class="highlight-tab-btn px-4 py-2.5 text-sm sm:text-base font-semibold border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-all">
+                    TV va Audio
+                </button>
+                <button onclick="selectHighlightTab('home')" id="tab-btn-home" class="highlight-tab-btn px-4 py-2.5 text-sm sm:text-base font-semibold border-b-2 border-transparent text-gray-500 hover:text-black whitespace-nowrap transition-all">
+                    Maishiy texnika
+                </button>
+            </div>
+
+            <!-- Bento Grid Konteyner (1 katta asosiy karta + 4 kichik karta) -->
+            <div id="bento-grid-container" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Dinamik ravishda JavaScript orqali chiziladi -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 4) MOBIL QURILMALAR VITRINASI (RANG TANLASH - COLOR SWATCHER) -->
+    <section id="mobile-showcase" class="py-16 lg:py-24 bg-samsung-bg">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+            <div class="bg-white rounded-3xl p-8 sm:p-12 lg:p-16 shadow-xs">
+                <div class="grid lg:grid-cols-12 gap-12 items-center">
+                    <!-- Chap tomon: Telefon vizual ko'rinishi -->
+                    <div class="lg:col-span-6 flex flex-col items-center justify-center bg-samsung-bg rounded-3xl p-10 min-h-[440px]">
+                        <div id="phone-visual" class="phone-chassis w-60 sm:w-64 h-[390px] sm:h-[420px] rounded-[36px] bg-gradient-to-b from-[#2C2F36] to-[#121316] p-3 flex flex-col justify-between relative">
+                            <!-- Kamera modullari (Orqa panel ko'rinishi) -->
+                            <div class="space-y-2.5 p-2">
+                                <div class="w-9 h-9 rounded-full bg-black border-2 border-gray-500/60 flex items-center justify-center shadow-md">
+                                    <div class="w-4 h-4 rounded-full bg-indigo-950"></div>
+                                </div>
+                                <div class="w-9 h-9 rounded-full bg-black border-2 border-gray-500/60 flex items-center justify-center shadow-md">
+                                    <div class="w-4 h-4 rounded-full bg-blue-950"></div>
+                                </div>
+                                <div class="w-9 h-9 rounded-full bg-black border-2 border-gray-500/60 flex items-center justify-center shadow-md">
+                                    <div class="w-4 h-4 rounded-full bg-slate-900"></div>
+                                </div>
+                            </div>
+                            <!-- Samsung logotipi orqa panelda -->
+                            <div class="text-center pb-6">
+                                <span class="font-display font-bold text-xs tracking-[0.2em] text-white/50">SAMSUNG</span>
+                            </div>
+                        </div>
+                        <span id="selected-color-label" class="mt-6 text-sm font-semibold text-gray-700">Tanlangan rang: Titanium Qora</span>
+                    </div>
+
+                    <!-- O'ng tomon: Texnik xususiyatlar va Rang tanlash -->
+                    <div class="lg:col-span-6 space-y-6">
+                        <span class="px-3.5 py-1.5 rounded-full bg-samsung-blue/10 text-samsung-blue text-xs font-bold uppercase">
+                            Flagman Smartfon
+                        </span>
+                        <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+                            Galaxy S26 Ultra
+                        </h2>
+                        <p class="text-samsung-gray text-base leading-relaxed">
+                            Mustahkam titanium ramka, aks ettirmaydigan Corning® Gorilla® Armor oynasi va Snapdragon® 8 Elite for Galaxy protsessori bilan mislsiz tezlik.
+                        </p>
+
+                        <!-- Rang tanlash tugmalari (Color Swatcher) -->
+                        <div class="pt-2">
+                            <p class="text-sm font-bold mb-3">Korpus rangini tanlang:</p>
+                            <div class="flex items-center gap-4">
+                                <button onclick="changePhoneColor('Titanium Qora', 'from-[#2C2F36] to-[#121316]', this)" 
+                                    class="color-swatch-btn w-11 h-11 rounded-full bg-[#1E2024] ring-2 ring-offset-2 ring-black transition-all" 
+                                    aria-label="Titanium Qora"></button>
+                                
+                                <button onclick="changePhoneColor('Titanium Kulrang', 'from-[#A5A29B] to-[#6E6B64]', this)" 
+                                    class="color-swatch-btn w-11 h-11 rounded-full bg-[#8E8B84] hover:scale-105 transition-all" 
+                                    aria-label="Titanium Kulrang"></button>
+                                
+                                <button onclick="changePhoneColor('Titanium Ko\'k', 'from-[#3B5978] to-[#1C2E42]', this)" 
+                                    class="color-swatch-btn w-11 h-11 rounded-full bg-[#2C4663] hover:scale-105 transition-all" 
+                                    aria-label="Titanium Ko'k"></button>
+                            </div>
+                        </div>
+
+                        <!-- Xotira hajmi tanlovi -->
+                        <div class="pt-2">
+                            <p class="text-sm font-bold mb-3">Xotira hajmi:</p>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="selectStorage('256 GB', 15490000, this)" class="storage-btn px-5 py-2.5 rounded-full border border-gray-300 text-sm font-semibold hover:border-black transition-all">256 GB</button>
+                                <button onclick="selectStorage('512 GB', 16990000, this)" class="storage-btn px-5 py-2.5 rounded-full border-2 border-black bg-black text-white text-sm font-semibold transition-all">512 GB</button>
+                                <button onclick="selectStorage('1 TB', 19490000, this)" class="storage-btn px-5 py-2.5 rounded-full border border-gray-300 text-sm font-semibold hover:border-black transition-all">1 TB</button>
+                            </div>
+                        </div>
+
+                        <!-- Narx va Savatga qo'shish -->
+                        <div class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <span class="text-xs text-gray-500 block">Rasmiy narx:</span>
+                                <span id="showcase-price" class="font-display text-2xl sm:text-3xl font-extrabold">16 990 000 so'm</span>
+                            </div>
+                            <button onclick="addShowcasePhoneToCart()" class="px-8 py-4 rounded-full bg-samsung-bright hover:bg-samsung-blue text-white font-semibold text-sm transition-colors shadow-lg shadow-samsung-bright/25">
+                                Savatga qo'shish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5) SMARTTHINGS VA EKOTIZIM BO'LIMI -->
+    <section id="smartthings" class="py-16 lg:py-24 bg-white">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-samsung-bright">SmartThings Ekotizimi</span>
+                    <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mt-2">
+                        Barcha qurilmalaringiz yagona boshqaruvda
+                    </h2>
+                </div>
+                <p class="text-samsung-gray max-w-md text-sm sm:text-base">
+                    Hayot tarziga mos aqlli ssenariylarni bir teginish bilan ishga tushiring.
+                </p>
+            </div>
+
+            <!-- Rejim tanlash tugmalari -->
+            <div class="flex flex-wrap gap-3 mb-8">
+                <button onclick="switchSmartMode('home')" id="smart-btn-home" class="smart-mode-btn px-6 py-3 rounded-full bg-black text-white font-semibold text-sm transition-all">
+                    🏠 Uy rejimi
+                </button>
+                <button onclick="switchSmartMode('cinema')" id="smart-btn-cinema" class="smart-mode-btn px-6 py-3 rounded-full bg-samsung-bg text-black hover:bg-gray-200 font-semibold text-sm transition-all">
+                    🎬 Kino kechasi
+                </button>
+                <button onclick="switchSmartMode('eco')" id="smart-btn-eco" class="smart-mode-btn px-6 py-3 rounded-full bg-samsung-bg text-black hover:bg-gray-200 font-semibold text-sm transition-all">
+                    🌱 Energiya tejash
+                </button>
+            </div>
+
+            <!-- SmartThings Interaktiv Paneli -->
+            <div id="smartthings-display" class="rounded-3xl bg-gradient-to-br from-[#F4F7FC] to-[#E6EEF9] p-8 sm:p-12 border border-blue-100 transition-all duration-500">
+                <!-- Dinamik kontent JS orqali yangilanadi -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 6) EXPLORE #DOWHATYOUCANT (MAQOLALAR VA INNOVATSIYALAR) -->
+    <section id="explore" class="py-16 lg:py-24 bg-samsung-bg">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+                    Explore #DoWhatYouCant
+                </h2>
+                <p class="text-samsung-gray mt-3 text-base">
+                    Texnologiyalar kundalik hayotimiz, ijodkorlik va kelajakni qanday o'zgartirayotgani haqida hikoyalar
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Maqola 1 -->
+                <article class="group bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="h-56 bg-gradient-to-tr from-[#1428A0] to-[#2189FF] p-8 flex flex-col justify-between text-white relative overflow-hidden">
+                            <span class="text-xs font-bold uppercase tracking-widest bg-white/20 w-max px-3 py-1 rounded-full">Galaxy AI</span>
+                            <h3 class="font-display text-2xl font-bold leading-snug">Til to'siqlarini olib tashlovchi Live Translate</h3>
+                        </div>
+                        <div class="p-7">
+                            <p class="text-samsung-gray text-sm leading-relaxed">
+                                Xorijiy hamkorlar bilan qo'ng'iroqlar va sayohatlar davomida suhbatlarni real vaqt rejimida ovozli hamda matnli tarjima qiling.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-7 pb-7">
+                        <button onclick="showToast('Maqola o\'qish oynasi ochildi: Live Translate')" class="text-sm font-bold text-black underline underline-offset-4 hover:text-samsung-blue transition-colors">
+                            Batafsil o'qish
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Maqola 2 -->
+                <article class="group bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="h-56 bg-gradient-to-tr from-[#111827] to-[#374151] p-8 flex flex-col justify-between text-white relative overflow-hidden">
+                            <span class="text-xs font-bold uppercase tracking-widest bg-white/20 w-max px-3 py-1 rounded-full">Tungi Suratga Olish</span>
+                            <h3 class="font-display text-2xl font-bold leading-snug">Nightography bilan qorong'ida ham yorqin kadrlar</h3>
+                        </div>
+                        <div class="p-7">
+                            <p class="text-samsung-gray text-sm leading-relaxed">
+                                Kattalashtirilgan piksel sensorlari va AI shovqinni kamaytirish algoritmi yordamida tungi shahar manzaralarini professional darajada muhrlang.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-7 pb-7">
+                        <button onclick="showToast('Maqola o\'qish oynasi ochildi: Nightography')" class="text-sm font-bold text-black underline underline-offset-4 hover:text-samsung-blue transition-colors">
+                            Batafsil o'qish
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Maqola 3 -->
+                <article class="group bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="h-56 bg-gradient-to-tr from-[#065F46] to-[#10B981] p-8 flex flex-col justify-between text-white relative overflow-hidden">
+                            <span class="text-xs font-bold uppercase tracking-widest bg-white/20 w-max px-3 py-1 rounded-full">Barqarorlik</span>
+                            <h3 class="font-display text-2xl font-bold leading-snug">Okean plastiklaridan qayta ishlangan Galaxy komponentlari</h3>
+                        </div>
+                        <div class="p-7">
+                            <p class="text-samsung-gray text-sm leading-relaxed">
+                                Samsung tabiatni asrash maqsadida smartfonlar va planshetlar ishlab chiqarishda qayta ishlangan alyuminiy, shisha va plastiklardan foydalanmoqda.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-7 pb-7">
+                        <button onclick="showToast('Maqola o\'qish oynasi ochildi: Ekologik tashabbuslar')" class="text-sm font-bold text-black underline underline-offset-4 hover:text-samsung-blue transition-colors">
+                            Batafsil o'qish
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8) RASMIY FOOTER (PASTKI QISM) -->
+    <footer id="footer-support" class="bg-white border-t border-gray-200 pt-16 pb-10">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+            <!-- Ko'p ustunli menyular -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 pb-14 border-b border-gray-200 text-sm">
+                <div>
+                    <h4 class="font-display font-bold text-base mb-5">Mahsulotlar</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li><a href="#mobile-showcase" class="hover:text-black hover:underline">Smartfonlar</a></li>
+                        <li><a href="#highlights" onclick="selectHighlightTab('mobile')" class="hover:text-black hover:underline">Planshetlar</a></li>
+                        <li><a href="#highlights" onclick="selectHighlightTab('mobile')" class="hover:text-black hover:underline">Aqlli soatlar</a></li>
+                        <li><a href="#highlights" onclick="selectHighlightTab('mobile')" class="hover:text-black hover:underline">Galaxy Buds</a></li>
+                        <li><a href="#highlights" onclick="selectHighlightTab('tv')" class="hover:text-black hover:underline">Televizorlar</a></li>
+                        <li><a href="#highlights" onclick="selectHighlightTab('home')" class="hover:text-black hover:underline">Sovutgichlar va Kir yuvish</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-display font-bold text-base mb-5">Do'kon</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li><a href="#highlights" class="hover:text-black hover:underline">Hafta takliflari</a></li>
+                        <li><button onclick="showToast('Trade-in dasturi: Eski qurilmangizni yangisiga almashtiring')" class="hover:text-black hover:underline text-left">Trade-In dasturi</button></li>
+                        <li><button onclick="showToast('Talabalar va o\'qituvchilar uchun maxsus chegirmalar')" class="hover:text-black hover:underline text-left">Ta'lim chegirmalari</button></li>
+                        <li><button onclick="toggleCartDrawer(true)" class="hover:text-black hover:underline text-left">Buyurtmani kuzatish</button></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-display font-bold text-base mb-5">Qo'llab-quvvatlash</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li><button onclick="showToast('Aloqa markazi: 7799 (O\'zbekiston bo\'ylab bepul)')" class="hover:text-black hover:underline text-left">Biz bilan bog'lanish</button></li>
+                        <li><button onclick="showToast('Toshkent, Samarqand, Buxoro va boshqa viloyatlardagi servis markazlari')" class="hover:text-black hover:underline text-left">Servis markazlari</button></li>
+                        <li><button onclick="showToast('Kafolat shartlari bo\'limi')" class="hover:text-black hover:underline text-left">Kafolat ma'lumotlari</button></li>
+                        <li><button onclick="showToast('Foydalanuvchi qo\'llanmalari yuklash sahifasi')" class="hover:text-black hover:underline text-left">Qo'llanmalar va dasturlar</button></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-display font-bold text-base mb-5">Kompaniya haqida</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li><a href="#explore" class="hover:text-black hover:underline">Kompaniya profili</a></li>
+                        <li><a href="#explore" class="hover:text-black hover:underline">Biznes yo'nalishlari</a></li>
+                        <li><a href="#explore" class="hover:text-black hover:underline">Brend identifikatsiyasi</a></li>
+                        <li><button onclick="showToast('Samsung O\'zbekiston bo\'sh ish o\'rinlari')" class="hover:text-black hover:underline text-left">Karyera</button></li>
+                        <li><a href="#explore" class="hover:text-black hover:underline">Yangiliklar xonasi</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mualliflik huquqi va huquqiy havolalar -->
+            <div class="pt-8 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 text-xs text-gray-500">
+                <div class="space-y-2">
+                    <p>Copyright© 1995-2026 SAMSUNG. Barcha huquqlar himoyalangan.</p>
+                    <div class="flex flex-wrap items-center gap-4 pt-1 font-medium text-gray-700">
+                        <span>O'zbekiston / O'zbek tili</span>
+                        <span>|</span>
+                        <button onclick="showToast('Maxfiylik siyosati')" class="hover:underline">Maxfiylik</button>
+                        <button onclick="showToast('Huquqiy ma\'lumotlar')" class="hover:underline">Huquqiy ma'lumot</button>
+                        <button onclick="showToast('Cookie fayllar siyosati')" class="hover:underline">Cookie fayllar</button>
+                        <button onclick="showToast('Sayt xaritasi')" class="hover:underline">Sayt xaritasi</button>
+                    </div>
+                </div>
+
+                <!-- Ijtimoiy tarmoqlar -->
+                <div class="flex items-center gap-3">
+                    <span class="font-semibold text-black mr-1">Bizni kuzating:</span>
+                    <a href="https://youtube.com" target="_blank" rel="noopener" aria-label="YouTube" class="p-2.5 rounded-full bg-samsung-bg hover:bg-black hover:text-white transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                    <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="p-2.5 rounded-full bg-samsung-bg hover:bg-black hover:text-white transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <a href="https://telegram.org" target="_blank" rel="noopener" aria-label="Telegram" class="p-2.5 rounded-full bg-samsung-bg hover:bg-black hover:text-white transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERAKTIV JAVASCRIPT MANTIQI -->
+    <script>
+        // Narxlarni chiroyli formatlash funksiyasi (16 990 000 so'm)
+        function formatPrice(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
+        }
+
+        // 1. Toast Bildirishnoma (alert() o'rniga)
+        function showToast(text) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-black text-white px-5 py-3.5 rounded-full shadow-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 animate-fade-up';
+            toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-samsung-bright shrink-0"></span><span>${text}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // Mobil menyu
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // 2. HERO SLIDER LOGIKASI
+        let currentHeroIdx = 0;
+        const heroSlides = document.querySelectorAll('.hero-slide');
+        const heroDots = document.querySelectorAll('.hero-dot');
+
+        function goToHeroSlide(index) {
+            currentHeroIdx = (index + heroSlides.length) % heroSlides.length;
+            heroSlides.forEach((slide, i) => {
+                if (i === currentHeroIdx) {
+                    slide.classList.remove('hidden');
+                    slide.classList.add('animate-fade-up');
+                } else {
+                    slide.classList.add('hidden');
+                }
+            });
+            heroDots.forEach((dot, i) => {
+                if (i === currentHeroIdx) {
+                    dot.classList.remove('w-2.5', 'bg-white/50');
+                    dot.classList.add('w-8', 'bg-white');
+                } else {
+                    dot.classList.remove('w-8', 'bg-white');
+                    dot.classList.add('w-2.5', 'bg-white/50');
+                }
+            });
+        }
+
+        function changeHeroSlide(step) {
+            goToHeroSlide(currentHeroIdx + step);
+        }
+
+        // Har 6 soniyada avtomatik slayd almashishi
+        setInterval(() => changeHeroSlide(1), 6500);
+
+        // 3. HAFTA TAKLIFLARI (BENTO GRID MA'LUMOTLARI VA TABLAR)
+        const highlightsData = {
+            new: [
+                {
+                    featured: true,
+                    badge: 'YANGI',
+                    name: 'Galaxy Z Fold7 5G',
+                    desc: 'Ultra-yupqa bukiluvchi ekran va Galaxy AI ko\'p vazifali rejimi',
+                    price: 22990000,
+                    color: 'Kumush Soyali',
+                    gradient: 'from-[#1428A0] to-[#2189FF]',
+                    icon: '📱'
+                },
+                {
+                    name: 'Galaxy Watch Ultra',
+                    desc: 'Titanium korpus, 100 soatgacha batareya',
+                    price: 7890000,
+                    color: 'Titanium Kulrang',
+                    gradient: 'from-slate-800 to-slate-600',
+                    icon: '⌚'
+                },
+                {
+                    name: 'Galaxy Buds3 Pro',
+                    desc: '24-bit Hi-Fi ovoz va aqlli shovqin bosish',
+                    price: 2690000,
+                    color: 'Oq',
+                    gradient: 'from-blue-600 to-cyan-500',
+                    icon: '🎧'
+                },
+                {
+                    name: 'Galaxy Tab S10 Ultra',
+                    desc: '14.6" Dynamic AMOLED 2X displey',
+                    price: 15890000,
+                    color: 'Grafit',
+                    gradient: 'from-indigo-900 to-indigo-600',
+                    icon: '💻'
+                },
+                {
+                    name: 'Odyssey OLED G9 49"',
+                    desc: '240Hz egri o\'yin monitori, 0.03ms',
+                    price: 18490000,
+                    color: 'Kumush',
+                    gradient: 'from-purple-900 to-blue-700',
+                    icon: '🖥️'
+                }
+            ],
+            mobile: [
+                {
+                    featured: true,
+                    badge: 'BESTSELLER',
+                    name: 'Galaxy S26 Ultra',
+                    desc: '200MP ProVisual kamera va o\'rnatilgan S Pen bilan mutlaq flagman',
+                    price: 16990000,
+                    color: 'Titanium Qora',
+                    gradient: 'from-[#0F172A] to-[#1E3A8A]',
+                    icon: '📱'
+                },
+                {
+                    name: 'Galaxy Z Flip7',
+                    desc: 'Cho\'ntakka sig\'uvchi ixcham dizayn va FlexWindow',
+                    price: 13490000,
+                    color: 'Moviy',
+                    gradient: 'from-sky-600 to-blue-500',
+                    icon: '📲'
+                },
+                {
+                    name: 'Galaxy S26+',
+                    desc: 'QHD+ displey va kun bo\'yi yetadigan quvvat',
+                    price: 12990000,
+                    color: 'Binafsha',
+                    gradient: 'from-violet-700 to-purple-500',
+                    icon: '📱'
+                },
+                {
+                    name: 'Galaxy A56 5G',
+                    desc: 'Super AMOLED 120Hz va IP67 suvdan himoya',
+                    price: 5290000,
+                    color: 'Qora',
+                    gradient: 'from-emerald-700 to-teal-500',
+                    icon: '📱'
+                },
+                {
+                    name: 'Galaxy Ring',
+                    desc: '24/7 uyqu va salomatlik monitoringi',
+                    price: 4590000,
+                    color: 'Titanium Oltin',
+                    gradient: 'from-amber-600 to-yellow-500',
+                    icon: '💍'
+                }
+            ],
+            tv: [
+                {
+                    featured: true,
+                    badge: '8K AI',
+                    name: 'Neo QLED 8K 75" QN900D',
+                    desc: 'NQ8 AI Gen3 protsessori va Dolby Atmos tovush tizimi',
+                    price: 42500000,
+                    color: 'Titan Qora',
+                    gradient: 'from-[#111827] to-[#1428A0]',
+                    icon: '📺'
+                },
+                {
+                    name: 'The Frame 65" QLED 4K',
+                    desc: 'O\'chirilgan holatda san\'at asariga aylanuvchi TV',
+                    price: 19200000,
+                    color: 'Qora ramka',
+                    gradient: 'from-amber-800 to-orange-600',
+                    icon: '🖼️'
+                },
+                {
+                    name: 'OLED 4K 55" S95D',
+                    desc: 'Aks ettirmaydigan ekran va chuqur qora ranglar',
+                    price: 21800000,
+                    color: 'Grafit',
+                    gradient: 'from-slate-900 to-blue-900',
+                    icon: '📺'
+                },
+                {
+                    name: 'HW-Q990D Soundbar',
+                    desc: '11.1.4 kanalli simsiz Dolby Atmos akustika',
+                    price: 11400000,
+                    color: 'Qora',
+                    gradient: 'from-zinc-800 to-zinc-600',
+                    icon: '🔊'
+                },
+                {
+                    name: 'The Freestyle 2-avlod',
+                    desc: 'Portativ aqlli proyektor (100 dyuymgacha)',
+                    price: 8900000,
+                    color: 'Oq',
+                    gradient: 'from-cyan-700 to-blue-600',
+                    icon: '📽️'
+                }
+            ],
+            home: [
+                {
+                    featured: true,
+                    badge: 'BESPOKE AI',
+                    name: 'Bespoke AI Family Hub™ Sovutgich',
+                    desc: '32" sensorli ekran, AI Vision Inside kameralari bilan',
+                    price: 26400000,
+                    color: 'Zanglamaydigan po\'lat',
+                    gradient: 'from-[#0F4C75] to-[#3282B8]',
+                    icon: '🧊'
+                },
+                {
+                    name: 'Bespoke AI Kir yuvish 11kg',
+                    desc: 'AI Ecobubble™ va avtomatik yuvish vositasi dozatori',
+                    price: 9450000,
+                    color: 'To\'q kulrang',
+                    gradient: 'from-slate-700 to-slate-500',
+                    icon: '🫧'
+                },
+                {
+                    name: 'Bespoke Jet Bot Combo™ AI',
+                    desc: 'Bug\' bilan tozalovchi avtonom robot-changyutgich',
+                    price: 11200000,
+                    color: 'Oq',
+                    gradient: 'from-teal-700 to-emerald-500',
+                    icon: '🤖'
+                },
+                {
+                    name: 'WindFree™ Inverter Konditsioner',
+                    desc: 'Shamol oqimisiz salqinlik va AI Energy rejimi',
+                    price: 7650000,
+                    color: 'Oq',
+                    gradient: 'from-sky-700 to-cyan-500',
+                    icon: '❄️'
+                },
+                {
+                    name: 'Bespoke AI Dual Cook Pech',
+                    desc: 'Bir vaqtning o\'zida ikki xil haroratda pishirish',
+                    price: 8300000,
+                    color: 'Qora shisha',
+                    gradient: 'from-neutral-900 to-neutral-700',
+                    icon: '♨️'
+                }
+            ]
+        };
+
+        function selectHighlightTab(category) {
+            // Tab tugmalarini yangilash
+            document.querySelectorAll('.highlight-tab-btn').forEach(btn => {
+                btn.classList.remove('border-black', 'text-black', 'font-bold');
+                btn.classList.add('border-transparent', 'text-gray-500', 'font-semibold');
+            });
+            const activeTab = document.getElementById('tab-btn-' + category);
+            if (activeTab) {
+                activeTab.classList.remove('border-transparent', 'text-gray-500', 'font-semibold');
+                activeTab.classList.add('border-black', 'text-black', 'font-bold');
+            }
+
+            // Bento Gridni chizish
+            const items = highlightsData[category];
+            const container = document.getElementById('bento-grid-container');
+            const featured = items[0];
+            const others = items.slice(1);
+
+            container.innerHTML = `
+                <!-- Katta Asosiy Bento Karta (Chap 6 ustun) -->
+                <div class="lg:col-span-6 group relative rounded-3xl bg-gradient-to-br ${featured.gradient} text-white p-8 sm:p-10 flex flex-col justify-between min-h-[420px] overflow-hidden animate-fade-up">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold tracking-wider">${featured.badge}</span>
+                        <span class="text-5xl">${featured.icon}</span>
+                    </div>
+                    <div class="my-8">
+                        <h3 class="font-display text-2xl sm:text-4xl font-extrabold leading-tight">${featured.name}</h3>
+                        <p class="text-white/85 text-sm sm:text-base mt-3 max-w-md">${featured.desc}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/20">
+                        <span class="font-display font-bold text-xl">${formatPrice(featured.price)}</span>
+                        <button onclick="addToCart('${featured.name.replace(/'/g, "\\'")}', ${featured.price}, '${featured.color}')" 
+                            class="px-6 py-3 rounded-full bg-white text-black hover:bg-gray-100 font-semibold text-sm transition-transform group-hover:scale-105">
+                            Savatga qo'shish
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 ta Kichik Bento Karta (O'ng 6 ustun, 2x2 grid) -->
+                <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fade-up">
+                    ${others.map(item => `
+                        <div class="group relative rounded-3xl bg-samsung-bg hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-xl p-6 flex flex-col justify-between transition-all duration-300">
+                            <div class="flex items-start justify-between">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr ${item.gradient} text-white flex items-center justify-center text-2xl shadow-sm">
+                                    ${item.icon}
+                                </div>
+                                <span class="text-xs font-semibold text-gray-500">${item.color}</span>
+                            </div>
+                            <div class="my-4">
+                                <h4 class="font-display font-bold text-lg text-black group-hover:text-samsung-blue transition-colors">${item.name}</h4>
+                                <p class="text-xs text-gray-600 mt-1.5 line-clamp-2">${item.desc}</p>
+                            </div>
+                            <div class="pt-3 border-t border-gray-200/70 flex items-center justify-between gap-2">
+                                <span class="font-display font-bold text-sm">${formatPrice(item.price)}</span>
+                                <button onclick="addToCart('${item.name.replace(/'/g, "\\'")}', ${item.price}, '${item.color}')" 
+                                    class="px-4 py-2 rounded-full bg-black text-white hover:bg-samsung-bright text-xs font-semibold transition-colors">
+                                    Savatga qo'shish
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 4. MOBIL QURILMALAR VITRINASI (COLOR SWATCHER VA XOTIRA)
+        let selectedPhoneState = {
+            name: 'Galaxy S26 Ultra',
+            color: 'Titanium Qora',
+            storage: '512 GB',
+            price: 16990000
+        };
+
+        function changePhoneColor(colorName, gradientClasses, btnEl) {
+            selectedPhoneState.color = colorName;
+            document.getElementById('selected-color-label').textContent = `Tanlangan rang: ${colorName}`;
+            
+            const phoneVisual = document.getElementById('phone-visual');
+            phoneVisual.className = `phone-chassis w-60 sm:w-64 h-[390px] sm:h-[420px] rounded-[36px] bg-gradient-to-b ${gradientClasses} p-3 flex flex-col justify-between relative`;
+
+            document.querySelectorAll('.color-swatch-btn').forEach(b => {
+                b.classList.remove('ring-2', 'ring-offset-2', 'ring-black');
+            });
+            btnEl.classList.add('ring-2', 'ring-offset-2', 'ring-black');
+        }
+
+        function selectStorage(storage, price, btnEl) {
+            selectedPhoneState.storage = storage;
+            selectedPhoneState.price = price;
+            document.getElementById('showcase-price').textContent = formatPrice(price);
+
+            document.querySelectorAll('.storage-btn').forEach(b => {
+                b.classList.remove('border-2', 'border-black', 'bg-black', 'text-white');
+                b.classList.add('border', 'border-gray-300');
+            });
+            btnEl.classList.remove('border', 'border-gray-300');
+            btnEl.classList.add('border-2', 'border-black', 'bg-black', 'text-white');
+        }
+
+        function addShowcasePhoneToCart() {
+            const fullName = `${selectedPhoneState.name} (${selectedPhoneState.storage})`;
+            addToCart(fullName, selectedPhoneState.price, selectedPhoneState.color);
+        }
+
+        // 5. SMARTTHINGS EKOTIZIM REJIMLARI
+        const smartModes = {
+            home: {
+                title: 'Uy rejimi: Qulay harorat va xavfsizlik',
+                desc: 'Eshik qulfi ochilishi bilan yorug\'lik yoqiladi, WindFree™ konditsioner 22°C ga sozlanadi va Bespoke Jet Bot changyutgich zaryadlash stansiyasiga qaytadi.',
+                devices: [
+                    { name: 'WindFree™ Konditsioner', status: '22°C • Yoqilgan', icon: '❄️' },
+                    { name: 'SmartThings Yoritish', status: '75% • Iliq oq', icon: '💡' },
+                    { name: 'Bespoke Family Hub™', status: 'Eco Rejim • 3°C', icon: '🧊' },
+                    { name: 'Aqlli Eshik Qulfi', status: 'Himoyalangan', icon: '🔒' }
+                ]
+            },
+            cinema: {
+                title: 'Kino kechasi: Uyingizda haqiqiy kinoteatr muhiti',
+                desc: 'Neo QLED 8K televizor "Filmmaker Mode" rejimiga o\'tadi, HW-Q990D Soundbar atrof-muhit ovozini kuchaytiradi va pardalar avtomatik yopiladi.',
+                devices: [
+                    { name: 'Neo QLED 8K TV', status: 'Filmmaker Rejimi', icon: '📺' },
+                    { name: 'Q-Series Soundbar', status: 'Dolby Atmos • 45%', icon: '🔊' },
+                    { name: 'Xona Pardalari', status: 'To\'liq yopiq', icon: '🪟' },
+                    { name: 'Galaxy S26 Ultra', status: 'SmartThings Pult', icon: '📱' }
+                ]
+            },
+            eco: {
+                title: 'Energiya tejash: AI Energy Mode faollashtirildi',
+                desc: 'Sun\'iy intellekt elektr tarmog\'idagi yuklamani tahlil qilib, maishiy texnika energiya sarfini 30% gacha optimallashtiradi.',
+                devices: [
+                    { name: 'AI Energy Monitoring', status: '-32% Tejash faol', icon: '⚡' },
+                    { name: 'Bespoke Kir yuvish', status: 'Sovuq suvda AI Wash', icon: '🫧' },
+                    { name: 'Neo QLED TV Sensor', status: 'Avto-yorqinlik', icon: '🌱' },
+                    { name: 'Kutish rejimidagi rozetkalar', status: 'O\'chirilgan', icon: '🔌' }
+                ]
+            }
+        };
+
+        function switchSmartMode(modeKey) {
+            document.querySelectorAll('.smart-mode-btn').forEach(btn => {
+                btn.classList.remove('bg-black', 'text-white');
+                btn.classList.add('bg-samsung-bg', 'text-black');
+            });
+            const activeBtn = document.getElementById('smart-btn-' + modeKey);
+            activeBtn.classList.remove('bg-samsung-bg', 'text-black');
+            activeBtn.classList.add('bg-black', 'text-white');
+
+            const data = smartModes[modeKey];
+            const display = document.getElementById('smartthings-display');
+            display.innerHTML = `
+                <div class="grid lg:grid-cols-12 gap-8 items-center animate-fade-up">
+                    <div class="lg:col-span-5 space-y-4">
+                        <span class="inline-block px-3 py-1 rounded-full bg-samsung-bright/15 text-samsung-blue text-xs font-bold">Faol Ssenariy</span>
+                        <h3 class="font-display text-2xl sm:text-3xl font-extrabold">${data.title}</h3>
+                        <p class="text-gray-700 text-sm sm:text-base leading-relaxed">${data.desc}</p>
+                    </div>
+                    <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        ${data.devices.map(dev => `
+                            <div class="bg-white rounded-2xl p-5 shadow-xs flex items-center gap-4 border border-white">
+                                <div class="w-12 h-12 rounded-2xl bg-samsung-bg flex items-center justify-center text-2xl shrink-0">
+                                    ${dev.icon}
+                                </div>
+                                <div>
+                                    <h4 class="font-display font-bold text-sm">${dev.name}</h4>
+                                    <span class="text-xs font-semibold text-samsung-blue mt-0.5 block">${dev.status}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 7.1) QIDIRUV MODALI VA JONLI QIDIRUV
+        const allProductsCatalog = [
+            ...highlightsData.new,
+            ...highlightsData.mobile,
+            ...highlightsData.tv,
+            ...highlightsData.home
+        ];
+
+        function toggleSearchModal(show) {
+            const modal = document.getElementById('search-modal');
+            const content = document.getElementById('search-modal-content');
+            const input = document.getElementById('live-search-input');
+
+            if (show) {
+                modal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('-translate-y-4');
+                });
+                setTimeout(() => input.focus(), 100);
+                handleLiveSearch('');
+            } else {
+                modal.classList.add('opacity-0');
+                content.classList.add('-translate-y-4');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function setSearchQuery(q) {
+            const input = document.getElementById('live-search-input');
+            input.value = q;
+            handleLiveSearch(q);
+        }
+
+        function handleLiveSearch(query) {
+            const resultsContainer = document.getElementById('live-search-results');
+            const q = query.trim().toLowerCase();
+            
+            // Dublikatlarni olib tashlash
+            const uniqueProducts = Array.from(new Map(allProductsCatalog.map(item => [item.name, item])).values());
+            const filtered = q 
+                ? uniqueProducts.filter(p => p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q))
+                : uniqueProducts.slice(0, 4);
+
+            if (filtered.length === 0) {
+                resultsContainer.innerHTML = `<p class="py-6 text-center text-sm text-gray-500">"${query}" bo'yicha mahsulot topilmadi.</p>`;
+                return;
+            }
+
+            resultsContainer.innerHTML = filtered.map(item => `
+                <div class="py-3.5 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${item.icon}</span>
+                        <div>
+                            <h5 class="font-display font-bold text-sm">${item.name}</h5>
+                            <span class="text-xs text-gray-500">${formatPrice(item.price)}</span>
+                        </div>
+                    </div>
+                    <button onclick="addToCart('${item.name.replace(/'/g, "\\'")}', ${item.price}, '${item.color}'); toggleSearchModal(false);" 
+                        class="px-4 py-2 rounded-full bg-black text-white hover:bg-samsung-bright text-xs font-semibold transition-colors shrink-0">
+                        Savatga qo'shish
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // 7.2) SAVATCHA (CART DRAWER) VA BUYURTMA TIZIMI
+        let cart = [];
+
+        function toggleCartDrawer(show) {
+            const overlay = document.getElementById('cart-overlay');
+            const drawer = document.getElementById('cart-drawer');
+            if (show) {
+                overlay.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    overlay.classList.remove('opacity-0');
+                    drawer.classList.remove('translate-x-full');
+                });
+            } else {
+                overlay.classList.add('opacity-0');
+                drawer.classList.add('translate-x-full');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        function addToCart(name, price, color) {
+            const existingIndex = cart.findIndex(item => item.name === name && item.color === color);
+            if (existingIndex > -1) {
+                cart[existingIndex].qty += 1;
+            } else {
+                cart.push({ name, price, color, qty: 1 });
+            }
+            updateCartUI();
+            showToast(`"${name}" savatchaga qo'shildi`);
+        }
+
+        function updateCartQty(index, delta) {
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            document.getElementById('header-cart-badge').textContent = totalItems;
+            document.getElementById('drawer-cart-count').textContent = totalItems;
+            document.getElementById('cart-total-price').textContent = formatPrice(totalPrice);
+
+            const container = document.getElementById('cart-items-container');
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center py-12">
+                        <div class="w-16 h-16 rounded-full bg-samsung-bg flex items-center justify-center text-2xl mb-4">🛒</div>
+                        <p class="font-display font-bold text-lg">Savatchangiz bo'sh</p>
+                        <p class="text-sm text-gray-500 mt-1 max-w-xs">Yoqtirgan Samsung qurilmalaringizni tanlang va savatchaga qo'shing.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = cart.map((item, idx) => `
+                <div class="bg-samsung-bg rounded-2xl p-4 flex items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <h4 class="font-display font-bold text-sm">${item.name}</h4>
+                        <span class="text-xs text-gray-500 block">Rang: ${item.color}</span>
+                        <span class="font-bold text-sm text-samsung-blue block">${formatPrice(item.price * item.qty)}</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-white rounded-full px-2.5 py-1 border border-gray-200">
+                        <button onclick="updateCartQty(${idx}, -1)" class="w-6 h-6 flex items-center justify-center font-bold hover:text-samsung-blue">−</button>
+                        <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                        <button onclick="updateCartQty(${idx}, 1)" class="w-6 h-6 flex items-center justify-center font-bold hover:text-samsung-blue">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function checkoutOrder() {
+            if (cart.length === 0) {
+                showToast("Savatcha bo'sh! Avval mahsulot qo'shing.");
+                return;
+            }
+            const total = formatPrice(cart.reduce((sum, i) => sum + i.price * i.qty, 0));
+            cart = [];
+            updateCartUI();
+            toggleCartDrawer(false);
+            showToast(`Buyurtmangiz qabul qilindi! Jami: ${total}. Operator tez orada bog'lanadi.`);
+        }
+
+        // Sahifa yuklanganda dastlabki holatlarni ishga tushirish
+        window.onload = function() {
+            selectHighlightTab('new');
+            switchSmartMode('home');
+            updateCartUI();
+        };
+    </script>
+</body>
+</html>
